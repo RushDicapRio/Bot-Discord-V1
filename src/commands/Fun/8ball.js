@@ -15,6 +15,7 @@ module.exports = {
             .addFields(
                 { name: "Question", value: `${question}`, inline: true }
             )
+            .setFooter({ text: "Codé avec ❤️ par Saez" })
         const embed2 = new EmbedBuilder()
             .setColor('Random')
             .setTitle(`🎱| Partie de 8-ball de ${interaction.user.username}`)
@@ -22,6 +23,7 @@ module.exports = {
                 { name: "Question", value: `${question}`, inline: true },
                 { name: "Réponse", value: `${choice[ball]}`, inline: true }
             )
+            .setFooter({ text: "Codé avec ❤️ par Saez" })
         const button = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
