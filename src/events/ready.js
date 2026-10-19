@@ -2,7 +2,7 @@ const { ActivityType } = require('discord.js');
 const mongoose = require('mongoose');
 const mongodbURL = process.env.MONGODBURL;
 module.exports = {
-    name: 'ready',
+    name: 'clientReady',
     once: true,
     async execute(client) {
         console.log(`[ ✅ ] ${client.user.username} est maintenant en ligne !`)
