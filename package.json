@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@discordjs/rest": "^2.6.3",
+    "@discordjs/voice": "^0.19.2",
+    "@iamtraction/google-translate": "^3.0.0",
     "captcha-canvas": "^3.4.0",
     "discord-api-types": "^0.38.56",
     "discord-giveaways": "^6.0.1",
