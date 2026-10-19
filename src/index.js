@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, EmbedBuilder, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ModalBuilder, ButtonStyle, TextInputBuilder, TextInputStyle, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ModalBuilder, ButtonStyle, TextInputBuilder, TextInputStyle, Collection, MessageFlags } = require('discord.js');
 const fs = require('fs');
 const { Events } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildPresences, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMembers, GatewayIntentBits.DirectMessages]});
@@ -49,8 +49,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const verifydata = await verifySchema.findOne({ Guild: interaction.guild.id });
     const captchadata = await captchaSchema.findOne({ Guild: interaction.guild.id, User: interaction.user.id });
     if (interaction.customId === 'veirfy') {
-        if (!verifydata) return await interaction.reply({ content: `Le **système de vérification** a été désactivé sur ce serveur !`, ephemeral: true });
-        if (verifydata.Verified.includes(interaction.user.id)) return await interaction.reply({ content: 'Vous avez **déjà** été vérifié !', ephemeral: true });
+        if (!verifydata) return await interaction.reply({ content: `Le **système de vérification** a été désactivé sur ce serveur !`, flags: MessageFlags.Ephemeral });
+        if (verifydata.Verified.includes(interaction.user.id)) return await interaction.reply({ content: 'Vous avez **déjà** été vérifié !', flags: MessageFlags.Ephemeral });
         else {
             let letter = ['0','1','2','3','4','5','6','7','8','9','a','A','b','B','c','C','d','D','e','E','f','F','g','G','h','H','i','I','j','J','f','F','l','L','m','M','n','N','o','O','p','P','q','Q','r','R','s','S','t','T','u','U','v','V','w','W','x','X','y','Y','z','Z',];
             let result = Math.floor(Math.random() * letter.length);
@@ -93,7 +93,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 .setStyle(TextInputStyle.Short)
             const vermodalrow = new ActionRowBuilder().addComponents(answer);
             vermodal.addComponents(vermodalrow);
-            const vermsg = await interaction.reply({ embeds: [verifyEmbed], components: [verifybutton], ephemeral: true, files: [verifyattachment] });
+            const vermsg = await interaction.reply({ embeds: [verifyEmbed], components: [verifybutton], flags: MessageFlags.Ephemeral, files: [verifyattachment] });
             const vercollector = vermsg.createMessageComponentCollector();
             vercollector.on('collect', async i => {
                 if (i.customId === 'captchaenter') {
@@ -125,19 +125,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.customId === 'vermodal') {
         const userverdata = await captchaSchema.findOne({ Guild: interaction.guild.id, User: interaction.user.id });
         const verificationdata = await verifySchema.findOne({ Guild: interaction.guild.id });
-        if (verificationdata.Verified.includes(interaction.user.id)) return await interaction.reply({ content: `Vous êtes **déjà** vérifié sur ce serveur !`, ephemeral: true });
+        if (verificationdata.Verified.includes(interaction.user.id)) return await interaction.reply({ content: `Vous êtes **déjà** vérifié sur ce serveur !`, flags: MessageFlags.Ephemeral });
         const modalanswer = interaction.fields.getTextInputValue('answer');
         if (modalanswer === userverdata.Key) {
             const verrole = await interaction.guild.roles.cache.get(verificationdata.Role);
             try {
                 await interaction.member.roles.add(verrole);
             } catch (err) {
-                return await interaction.reply({ content: `Un **problème** est survenu lors de l'attribution du rôle **<@&${verificationdata.Role}>** ; veuillez réessayer plus tard !`, ephemeral: true });
+                return await interaction.reply({ content: `Un **problème** est survenu lors de l'attribution du rôle **<@&${verificationdata.Role}>** ; veuillez réessayer plus tard !`, flags: MessageFlags.Ephemeral });
             }
-            await interaction.reply({ content: 'Vous avez été **vérifié !**', ephemeral: true });
+            await interaction.reply({ content: 'Vous avez été **vérifié !**', flags: MessageFlags.Ephemeral });
             await verifySchema.updateOne({ Guild: interaction.guild.id }, { $push: { Verified: interaction.user.id }});
         } else {
-            await interaction.reply({ content: `**Oups !** Il semble que vous **n'ayez pas** saisi le **code captcha** valide !`, ephemeral: true });
+            await interaction.reply({ content: `**Oups !** Il semble que vous **n'ayez pas** saisi le **code captcha** valide !`, flags: MessageFlags.Ephemeral });
         }
     }
 })
@@ -154,7 +154,7 @@ client.on(Events.MessageCreate, async (message) => {
         await message.member.setNickname(`${nick}`).catch(err => {
             return;
         })
-        const m1 = await message.reply({ content: `Hé, tu es **de retour** !`, ephemeral: true });
+        const m1 = await message.reply({ content: `Hé, tu es **de retour** !` });
         setTimeout(() => {
             m1.delete();
         }, 4000);
@@ -165,8 +165,8 @@ client.on(Events.MessageCreate, async (message) => {
         if (!afkData) return;
         const member = message.guild.members.cache. get(members.id);
         const msg = afkData.Message;
-        if (messsage.content.includes(members)) {
-            const m = await message.reply({ content: `${member.user.tag} est actuellement absent(e) (AFK), faisons moins de bruit... \n> **Raison** : ${msg}`, ephemeral: true });
+        if (message.content.includes(members.id)) {
+            const m = await message.reply({ content: `${member.user.tag} est actuellement absent(e) (AFK), faisons moins de bruit... \n> **Raison** : ${msg}` });
             setTimeout(() => {
                 m.delete();
                 message.delete();
@@ -212,8 +212,8 @@ client.on(Events.InteractionCreate, async (i) => {
     if (!data) return;
     const msg = await i.channel.messages.fetch(data.Msg);
     if (i.customId === 'up') {
-        if (i.user.id === data.Owner) return await i.reply({ content: `❌ Vous ne pouvez pas voter pour votre propre sondage !`, ephemeral: true });
-        if (data.UpMembers.includes(i.user.id)) return await i.reply({ content: `❌ Vous avez **déjà** voté pour ce **sondage**`, ephemeral: true });
+        if (i.user.id === data.Owner) return await i.reply({ content: `❌ Vous ne pouvez pas voter pour votre propre sondage !`, flags: MessageFlags.Ephemeral });
+        if (data.UpMembers.includes(i.user.id)) return await i.reply({ content: `❌ Vous avez **déjà** voté pour ce **sondage**`, flags: MessageFlags.Ephemeral });
         let downvotes = data.Downvote;
         if (data.DownMembers.includes(i.user.id)) {
             downvotes = downvotes - 1;
@@ -246,8 +246,8 @@ client.on(Events.InteractionCreate, async (i) => {
         data.save();
     }
     if (i.customId == 'down') {
-        if (i.user.id === data.Owner) return await i.reply({ content: `❌ Vous ne pouvez pas voter négativement pour votre propre sondage !`, ephemeral: true });
-        if (data.DownMembers.includes(i.user.id)) return await i.reply({ content: `❌ Vous avez **déjà** voté contre ce **sondage**`, ephemeral: true });
+        if (i.user.id === data.Owner) return await i.reply({ content: `❌ Vous ne pouvez pas voter négativement pour votre propre sondage !`, flags: MessageFlags.Ephemeral });
+        if (data.DownMembers.includes(i.user.id)) return await i.reply({ content: `❌ Vous avez **déjà** voté contre ce **sondage**`, flags: MessageFlags.Ephemeral });
         let upvotes = data.Upvote;
         if (data.UpMembers.includes(i.user.id)) {
             upvotes = upvotes - 1;
@@ -296,6 +296,6 @@ client.on(Events.InteractionCreate, async (i) => {
             .setTimestamp()
             .addFields({ name: `Personnes ayant voté favorablement (${upvoters.length})`, value: `${upvoters.join(', ').slice(0, 1020) || 'Aucun vote positif'}`, inline: true })
             .addFields({ name: `Personnes qui votent négativement (${downvoters.length})`, value: `${downvoters.join(', ').slice(0, 1020) || 'Pas de votes négatifs'}`, inline: true })
-        await i.reply({ embeds: [embed], ephemeral: true });
+        await i.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
 });
